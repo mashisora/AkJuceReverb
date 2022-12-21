@@ -36,24 +36,27 @@ JuceReverbFXParams::~JuceReverbFXParams()
 {
 }
 
-JuceReverbFXParams::JuceReverbFXParams(const JuceReverbFXParams& in_rParams)
+JuceReverbFXParams::JuceReverbFXParams(const JuceReverbFXParams &in_rParams)
 {
     RTPC = in_rParams.RTPC;
     NonRTPC = in_rParams.NonRTPC;
     m_paramChangeHandler.SetAllParamChanges();
 }
 
-AK::IAkPluginParam* JuceReverbFXParams::Clone(AK::IAkPluginMemAlloc* in_pAllocator)
+AK::IAkPluginParam *JuceReverbFXParams::Clone(AK::IAkPluginMemAlloc *in_pAllocator)
 {
     return AK_PLUGIN_NEW(in_pAllocator, JuceReverbFXParams(*this));
 }
 
-AKRESULT JuceReverbFXParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const void* in_pParamsBlock, AkUInt32 in_ulBlockSize)
+AKRESULT JuceReverbFXParams::Init(AK::IAkPluginMemAlloc *in_pAllocator, const void *in_pParamsBlock, AkUInt32 in_ulBlockSize)
 {
     if (in_ulBlockSize == 0)
     {
         // Initialize default parameters here
-        RTPC.fPlaceholder = 0.0f;
+        RTPC.fRoomSize = 0.5f;
+        RTPC.fDamping = 0.5f;
+        RTPC.fWidth = 0.5f;
+        RTPC.fMix = 0.5f;
         m_paramChangeHandler.SetAllParamChanges();
         return AK_Success;
     }
@@ -61,35 +64,50 @@ AKRESULT JuceReverbFXParams::Init(AK::IAkPluginMemAlloc* in_pAllocator, const vo
     return SetParamsBlock(in_pParamsBlock, in_ulBlockSize);
 }
 
-AKRESULT JuceReverbFXParams::Term(AK::IAkPluginMemAlloc* in_pAllocator)
+AKRESULT JuceReverbFXParams::Term(AK::IAkPluginMemAlloc *in_pAllocator)
 {
     AK_PLUGIN_DELETE(in_pAllocator, this);
     return AK_Success;
 }
 
-AKRESULT JuceReverbFXParams::SetParamsBlock(const void* in_pParamsBlock, AkUInt32 in_ulBlockSize)
+AKRESULT JuceReverbFXParams::SetParamsBlock(const void *in_pParamsBlock, AkUInt32 in_ulBlockSize)
 {
     AKRESULT eResult = AK_Success;
-    AkUInt8* pParamsBlock = (AkUInt8*)in_pParamsBlock;
+    AkUInt8 *pParamsBlock = (AkUInt8 *)in_pParamsBlock;
 
     // Read bank data here
-    RTPC.fPlaceholder = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.fRoomSize = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.fDamping = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.fWidth = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
+    RTPC.fMix = READBANKDATA(AkReal32, pParamsBlock, in_ulBlockSize);
     CHECKBANKDATASIZE(in_ulBlockSize, eResult);
     m_paramChangeHandler.SetAllParamChanges();
 
     return eResult;
 }
 
-AKRESULT JuceReverbFXParams::SetParam(AkPluginParamID in_paramID, const void* in_pValue, AkUInt32 in_ulParamSize)
+AKRESULT JuceReverbFXParams::SetParam(AkPluginParamID in_paramID, const void *in_pValue, AkUInt32 in_ulParamSize)
 {
     AKRESULT eResult = AK_Success;
 
     // Handle parameter change here
     switch (in_paramID)
     {
-    case PARAM_PLACEHOLDER_ID:
-        RTPC.fPlaceholder = *((AkReal32*)in_pValue);
-        m_paramChangeHandler.SetParamChange(PARAM_PLACEHOLDER_ID);
+    case PARAM_ROOMSIZE_ID:
+        RTPC.fRoomSize = *((AkReal32 *)in_pValue);
+        m_paramChangeHandler.SetParamChange(PARAM_ROOMSIZE_ID);
+        break;
+    case PARAM_DAMPING_ID:
+        RTPC.fDamping = *((AkReal32 *)in_pValue);
+        m_paramChangeHandler.SetParamChange(PARAM_DAMPING_ID);
+        break;
+    case PARAM_WIDTH_ID:
+        RTPC.fWidth = *((AkReal32 *)in_pValue);
+        m_paramChangeHandler.SetParamChange(PARAM_WIDTH_ID);
+        break;
+    case PARAM_MIX_ID:
+        RTPC.fMix = *((AkReal32 *)in_pValue);
+        m_paramChangeHandler.SetParamChange(PARAM_MIX_ID);
         break;
     default:
         eResult = AK_InvalidParameter;

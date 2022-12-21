@@ -32,12 +32,18 @@ the specific language governing permissions and limitations under the License.
 
 // Add parameters IDs here, those IDs should map to the AudioEnginePropertyID
 // attributes in the xml property definition.
-static const AkPluginParamID PARAM_PLACEHOLDER_ID = 0;
-static const AkUInt32 NUM_PARAMS = 1;
+static const AkPluginParamID PARAM_ROOMSIZE_ID = 0;
+static const AkPluginParamID PARAM_DAMPING_ID = 1;
+static const AkPluginParamID PARAM_WIDTH_ID = 2;
+static const AkPluginParamID PARAM_MIX_ID = 3;
+static const AkUInt32 NUM_PARAMS = 4;
 
 struct JuceReverbRTPCParams
 {
-    AkReal32 fPlaceholder;
+    AkReal32 fRoomSize;
+    AkReal32 fDamping;
+    AkReal32 fWidth;
+    AkReal32 fMix;
 };
 
 struct JuceReverbNonRTPCParams
@@ -48,25 +54,25 @@ struct JuceReverbFXParams
     : public AK::IAkPluginParam
 {
     JuceReverbFXParams();
-    JuceReverbFXParams(const JuceReverbFXParams& in_rParams);
+    JuceReverbFXParams(const JuceReverbFXParams &in_rParams);
 
     ~JuceReverbFXParams();
 
     /// Create a duplicate of the parameter node instance in its current state.
-    IAkPluginParam* Clone(AK::IAkPluginMemAlloc* in_pAllocator) override;
+    IAkPluginParam *Clone(AK::IAkPluginMemAlloc *in_pAllocator) override;
 
     /// Initialize the plug-in parameter node interface.
     /// Initializes the internal parameter structure to default values or with the provided parameter block if it is valid.
-    AKRESULT Init(AK::IAkPluginMemAlloc* in_pAllocator, const void* in_pParamsBlock, AkUInt32 in_ulBlockSize) override;
+    AKRESULT Init(AK::IAkPluginMemAlloc *in_pAllocator, const void *in_pParamsBlock, AkUInt32 in_ulBlockSize) override;
 
     /// Called by the sound engine when a parameter node is terminated.
-    AKRESULT Term(AK::IAkPluginMemAlloc* in_pAllocator) override;
+    AKRESULT Term(AK::IAkPluginMemAlloc *in_pAllocator) override;
 
     /// Set all plug-in parameters at once using a parameter block.
-    AKRESULT SetParamsBlock(const void* in_pParamsBlock, AkUInt32 in_ulBlockSize) override;
+    AKRESULT SetParamsBlock(const void *in_pParamsBlock, AkUInt32 in_ulBlockSize) override;
 
     /// Update a single parameter at a time and perform the necessary actions on the parameter changes.
-    AKRESULT SetParam(AkPluginParamID in_paramID, const void* in_pValue, AkUInt32 in_ulParamSize) override;
+    AKRESULT SetParam(AkPluginParamID in_paramID, const void *in_pValue, AkUInt32 in_ulParamSize) override;
 
     AK::AkFXParameterChangeHandler<NUM_PARAMS> m_paramChangeHandler;
 

@@ -35,21 +35,23 @@ JuceReverbPlugin::~JuceReverbPlugin()
 {
 }
 
-bool JuceReverbPlugin::GetBankParameters(const GUID & in_guidPlatform, AK::Wwise::Plugin::DataWriter& in_dataWriter) const
+bool JuceReverbPlugin::GetBankParameters(const GUID &in_guidPlatform, AK::Wwise::Plugin::DataWriter &in_dataWriter) const
 {
     // Write bank data here
-    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Placeholder"));
-
+    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "RoomSize"));
+    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Damping"));
+    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Width"));
+    in_dataWriter.WriteReal32(m_propertySet.GetReal32(in_guidPlatform, "Mix"));
     return true;
 }
 
-DEFINE_AUDIOPLUGIN_CONTAINER(JuceReverb);											// Create a PluginContainer structure that contains the info for our plugin
-EXPORT_AUDIOPLUGIN_CONTAINER(JuceReverb);											// This is a DLL, we want to have a standardized name
-ADD_AUDIOPLUGIN_CLASS_TO_CONTAINER(                                             // Add our CLI class to the PluginContainer
-    JuceReverb,        // Name of the plug-in container for this shared library
-    JuceReverbPlugin,  // Authoring plug-in class to add to the plug-in container
-    JuceReverbFX       // Corresponding Sound Engine plug-in class
+DEFINE_AUDIOPLUGIN_CONTAINER(JuceReverb); // Create a PluginContainer structure that contains the info for our plugin
+EXPORT_AUDIOPLUGIN_CONTAINER(JuceReverb); // This is a DLL, we want to have a standardized name
+ADD_AUDIOPLUGIN_CLASS_TO_CONTAINER(       // Add our CLI class to the PluginContainer
+    JuceReverb,                           // Name of the plug-in container for this shared library
+    JuceReverbPlugin,                     // Authoring plug-in class to add to the plug-in container
+    JuceReverbFX                          // Corresponding Sound Engine plug-in class
 );
 DEFINE_PLUGIN_REGISTER_HOOK
 
-DEFINEDUMMYASSERTHOOK;							// Placeholder assert hook for Wwise plug-ins using AKASSERT (cassert used by default)
+DEFINEDUMMYASSERTHOOK; // Placeholder assert hook for Wwise plug-ins using AKASSERT (cassert used by default)

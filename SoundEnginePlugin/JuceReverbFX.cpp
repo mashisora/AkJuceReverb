@@ -29,12 +29,12 @@ the specific language governing permissions and limitations under the License.
 
 #include <AK/AkWwiseSDKVersion.h>
 
-AK::IAkPlugin* CreateJuceReverbFX(AK::IAkPluginMemAlloc* in_pAllocator)
+AK::IAkPlugin *CreateJuceReverbFX(AK::IAkPluginMemAlloc *in_pAllocator)
 {
     return AK_PLUGIN_NEW(in_pAllocator, JuceReverbFX());
 }
 
-AK::IAkPluginParam* CreateJuceReverbFXParams(AK::IAkPluginMemAlloc* in_pAllocator)
+AK::IAkPluginParam *CreateJuceReverbFXParams(AK::IAkPluginMemAlloc *in_pAllocator)
 {
     return AK_PLUGIN_NEW(in_pAllocator, JuceReverbFXParams());
 }
@@ -42,9 +42,7 @@ AK::IAkPluginParam* CreateJuceReverbFXParams(AK::IAkPluginMemAlloc* in_pAllocato
 AK_IMPLEMENT_PLUGIN_FACTORY(JuceReverbFX, AkPluginTypeEffect, JuceReverbConfig::CompanyID, JuceReverbConfig::PluginID)
 
 JuceReverbFX::JuceReverbFX()
-    : m_pParams(nullptr)
-    , m_pAllocator(nullptr)
-    , m_pContext(nullptr)
+    : m_pParams(nullptr), m_pAllocator(nullptr), m_pContext(nullptr)
 {
 }
 
@@ -52,16 +50,16 @@ JuceReverbFX::~JuceReverbFX()
 {
 }
 
-AKRESULT JuceReverbFX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPluginContext* in_pContext, AK::IAkPluginParam* in_pParams, AkAudioFormat& in_rFormat)
+AKRESULT JuceReverbFX::Init(AK::IAkPluginMemAlloc *in_pAllocator, AK::IAkEffectPluginContext *in_pContext, AK::IAkPluginParam *in_pParams, AkAudioFormat &in_rFormat)
 {
-    m_pParams = (JuceReverbFXParams*)in_pParams;
+    m_pParams = (JuceReverbFXParams *)in_pParams;
     m_pAllocator = in_pAllocator;
     m_pContext = in_pContext;
 
     return AK_Success;
 }
 
-AKRESULT JuceReverbFX::Term(AK::IAkPluginMemAlloc* in_pAllocator)
+AKRESULT JuceReverbFX::Term(AK::IAkPluginMemAlloc *in_pAllocator)
 {
     AK_PLUGIN_DELETE(in_pAllocator, this);
     return AK_Success;
@@ -72,30 +70,35 @@ AKRESULT JuceReverbFX::Reset()
     return AK_Success;
 }
 
-AKRESULT JuceReverbFX::GetPluginInfo(AkPluginInfo& out_rPluginInfo)
+AKRESULT JuceReverbFX::GetPluginInfo(AkPluginInfo &out_rPluginInfo)
 {
     out_rPluginInfo.eType = AkPluginTypeEffect;
     out_rPluginInfo.bIsInPlace = true;
-	out_rPluginInfo.bCanProcessObjects = false;
+    out_rPluginInfo.bCanProcessObjects = false;
     out_rPluginInfo.uBuildVersion = AK_WWISESDK_VERSION_COMBINED;
     return AK_Success;
 }
 
-void JuceReverbFX::Execute(AkAudioBuffer* io_pBuffer)
+void JuceReverbFX::Execute(AkAudioBuffer *io_pBuffer)
 {
+    io_pBuffer->ZeroPadToMaxFrames();
     const AkUInt32 uNumChannels = io_pBuffer->NumChannels();
+    const auto uMaxFrames = io_pBuffer->MaxFrames();
+
+    reverbParams.roomSize = m_pParams->RTPC.fRoomSize;
+    reverbParams.damping = m_pParams->RTPC.fDamping;
+    reverbParams.width = m_pParams->RTPC.fWidth;
+    reverbParams.wetLevel = m_pParams->RTPC.fMix;
+    reverbParams.dryLevel = 1.0f - m_pParams->RTPC.fMix;
+    reverbProcesser.setParameters(reverbParams);
 
     AkUInt16 uFramesProcessed;
     for (AkUInt32 i = 0; i < uNumChannels; ++i)
     {
-        AkReal32* AK_RESTRICT pBuf = (AkReal32* AK_RESTRICT)io_pBuffer->GetChannel(i);
-
-        uFramesProcessed = 0;
-        while (uFramesProcessed < io_pBuffer->uValidFrames)
-        {
-            // Execute DSP in-place here
-            ++uFramesProcessed;
-        }
+        AkSampleType *data = io_pBuffer->GetChannel(i);
+        juce::dsp::AudioBlock<AkSampleType> block(&data, 1, uMaxFrames);
+        juce::dsp::ProcessContextReplacing<AkSampleType> context(block);
+        reverbProcesser.process(context);
     }
 }
 
