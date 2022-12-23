@@ -92,7 +92,6 @@ void JuceReverbFX::Execute(AkAudioBuffer *io_pBuffer)
     reverbParams.dryLevel = 1.0f - m_pParams->RTPC.fMix;
     reverbProcesser.setParameters(reverbParams);
 
-    AkUInt16 uFramesProcessed;
     for (AkUInt32 i = 0; i < uNumChannels; ++i)
     {
         AkSampleType *data = io_pBuffer->GetChannel(i);
